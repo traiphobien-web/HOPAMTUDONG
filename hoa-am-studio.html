@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hòa Âm Studio</title>
+<style>
+:root{--bg:#f6f1e9;--card:#fffdf8;--ink:#2a2420;--mute:#7a6f64;--acc:#c2410c;--acc2:#0f766e;--line:#e5dccd;--key:#fff;--blk:#2a2420;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15110f;--card:#1f1a17;--ink:#f3ebe0;--mute:#a09384;--acc:#fb923c;--acc2:#2dd4bf;--line:#332b26;--key:#e9e2d6;--blk:#0b0908}}
+:root[data-theme="dark"]{--bg:#15110f;--card:#1f1a17;--ink:#f3ebe0;--mute:#a09384;--acc:#fb923c;--acc2:#2dd4bf;--line:#332b26;--key:#e9e2d6;--blk:#0b0908}
+*,*:before,*:after{box-sizing:inherit}
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 clamp(26px,5vw,38px)/1.1 Georgia,"Times New Roman",serif;margin:8px 0 6px}
+h1 span{color:var(--acc);font-style:italic}
+.sub{color:var(--mute);margin:0 0 20px;max-width:640px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:13px;letter-spacing:.08em;text-transform:uppercase;color:var(--mute);margin:0 0 10px}
+textarea{width:100%;min-height:210px;resize:vertical;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 16px}
+button:hover{border-color:var(--acc)}
+button[aria-pressed=true]{background:var(--acc);border-color:var(--acc);color:#fff}
+button.go{background:var(--acc2);border-color:var(--acc2);color:#fff;font-weight:600}
+button.go.stop{background:var(--acc);border-color:var(--acc)}
+:focus-visible{outline:3px solid var(--acc2);outline-offset:2px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+#sty{display:grid;gap:12px}
+.grp>b{display:block;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--acc);margin-bottom:6px}
+.grp button{padding:5px 12px;font-size:14px}
+#cards{display:block}
+#cards[data-show=guitar] .kb,#cards[data-show=none] .kb{display:none}
+#cards[data-show=piano] .gsvg,#cards[data-show=none] .gsvg{display:none}
+#ph{display:none;font-weight:600;margin-bottom:10px}
+@media print{
+:root:root:root{--bg:#fff;--card:#fff;--ink:#000;--mute:#444;--line:#ccc;--key:#fff;--blk:#000;--acc:#b33a00;--acc2:#0a5c55}
+body{background:#fff}.wrap>h1,.wrap>.sub,.wrap>.panel:not(#sheet),.np,#sheet h2{display:none!important}
+#sheet{border:0;padding:0}#ph{display:block}.ln{break-inside:avoid}.cb{cursor:default}}
+.ln{display:flex;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px;min-height:1.5em}
+.sg{display:inline-flex;flex-direction:column;justify-content:flex-end}
+.cb{display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border-radius:10px;padding:3px 5px;min-width:68px;transition:.15s}
+.cb:hover{background:var(--bg)}.cb.on{background:var(--bg);box-shadow:0 0 0 2px var(--acc)}
+.cb b{color:var(--acc);font:700 17px Georgia,serif}.cb svg{width:60px;height:auto}.cb .kb{width:64px}
+.ly{white-space:pre;font:15px/1.5 system-ui,sans-serif;padding:0 4px}
+.ln{margin-bottom:14px}.cap{font-weight:600;margin-bottom:6px}
+.seq{display:flex;align-items:stretch;gap:6px;overflow-x:auto;padding:2px 2px 8px}.seq .card{flex:0 0 214px}
+.ar{align-self:center;color:var(--mute);font-size:20px}.nt{font-size:12px;color:var(--mute);margin:2px 0}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+#sd{color:var(--mute);margin:10px 0 0;min-height:48px}
+#out{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px;font:14px/1.5 ui-monospace,Menlo,Consolas,monospace;overflow-x:auto;white-space:pre;max-height:340px;overflow-y:auto}
+#out .cl{color:var(--acc);font-weight:700}
+.badge{display:inline-block;background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:2px 12px;font-size:14px;margin-right:6px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;cursor:pointer;transition:.15s}
+.card:hover{border-color:var(--acc2)}
+.card.on{border-color:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 30%,transparent);transform:translateY(-2px)}
+.card h3{margin:0;font:700 24px Georgia,serif}
+.card small{display:block;font:12px system-ui;color:var(--mute)}
+.card .w{font-size:13px;color:var(--mute);margin:6px 0}
+.card .row{flex-wrap:nowrap;align-items:flex-start;font-size:13px}
+.card svg{display:block;max-width:100%}
+.card .kb{margin-top:8px;width:100%;height:auto}
+.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin:0 4px 0 10px}
+label.chk{margin-right:10px;font-size:14px}
+input[type=range]{accent-color:var(--acc);vertical-align:middle}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Hòa Âm <span>Studio</span></h1>
+<p class="sub">Dán bài hát có hợp âm, chọn phong cách. Ứng dụng nhận ra giọng, phối lại theo chức năng hòa âm và vẽ thế bấm guitar + piano cho từng hợp âm.</p>
+
+<section class="panel"><h2>1 · Bài hát</h2>
+<textarea id="in" spellcheck="false" aria-label="Bài hát kèm hợp âm"></textarea>
+<p class="row" style="margin:10px 0 0"><button id="smp" type="button">Nạp bài mẫu</button><span style="color:var(--mute);font-size:13px">Hợp âm trên dòng riêng phía trên lời, hoặc chen trong lời dạng [Am].</span></p>
+</section>
+
+<section class="panel"><h2>2 · Phong cách &amp; mức độ</h2>
+<div id="sty" role="group" aria-label="Phong cách"></div>
+<p id="sd"></p>
+<div class="opts">
+<div><b>Mức độ phối</b><div class="row" id="lvl" role="group" aria-label="Mức độ" style="margin-top:6px"></div></div>
+<div><b>Tốc độ: <span id="bv"></span> BPM</b><br><input type="range" id="bpm" min="50" max="160" aria-label="Tốc độ"></div>
+<div><b>Lên / xuống tone: <span id="tv">0</span> nửa cung</b><div class="row" style="margin-top:6px"><button id="td" type="button" aria-label="Xuống nửa cung">− Xuống</button><button id="tu" type="button" aria-label="Lên nửa cung">+ Lên</button><button id="t0" type="button">Về tone gốc</button></div></div>
+</div>
+</section>
+
+<section class="panel"><h2>3 · Kết quả</h2>
+<p><span class="badge" id="key">Giọng: —</span></p>
+<div id="out" aria-live="polite"></div>
+<div class="row" style="margin-top:12px">
+<button class="go" id="pl" type="button">▶ Nghe cả bài</button>
+<button id="cp" type="button">Sao chép bản phối</button>
+<span><label class="chk"><input type="checkbox" id="xp" checked> Piano</label><label class="chk"><input type="checkbox" id="xg" checked> Guitar</label><label class="chk"><input type="checkbox" id="xb" checked> Bass</label></span>
+</div>
+</section>
+
+<section class="panel" id="sheet"><h2>4 · Bài hát kèm thế bấm <span class="dot" style="background:var(--acc)"></span>tay trái <span class="dot" style="background:var(--acc2)"></span>tay phải</h2>
+<div class="row np" style="margin-bottom:12px"><b>Hiển thị:</b><div class="row" id="shw" role="group" aria-label="Nhạc cụ hiển thị"></div><button id="pr" type="button">🖨 In bản nhạc</button><span style="color:var(--mute);font-size:13px">hoặc Ctrl/Cmd + P · bấm vào hợp âm để nghe</span></div>
+<div id="ph"></div>
+<div class="cards" id="cards" data-show="both"></div>
+</section>
+</div>
+
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const NS=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],NF=['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'];
+let N=NS,cur='jazz',lv=1,T=0,cs=[],K={t:0,min:0};
+const PC=n=>(({C:0,D:2,E:4,F:5,G:7,A:9,B:11})[n[0]]+(n[1]=='#')-(n[1]=='b')+12)%12;
+const CH=/^([A-G][#b]?)((?:maj|min|dim|aug|sus|add|m|M|Δ|°|ø|\+|-|#|b|\d|[()]|\/(?=9))*)(?:\/([A-G][#b]?))?$/;
+
+/* ---------- Lý thuyết: hợp âm -> các quãng (bán cung so với gốc) ---------- */
+function tones(q){
+ q=q.replace(/[()]/g,'').replace(/^min/,'m').replace(/^-/,'m').replace(/^(Δ|M(?!a))/,'maj').replace('°','dim').replace('ø','m7b5').replace('6/9','69');
+ const r=q.replace(/^m(?!aj)/,'');let t=r!=q?[0,3,7]:[0,4,7];
+ if(/^dim/.test(q))t=[0,3,6];if(/^(aug|\+)/.test(q))t=[0,4,8];
+ if(/sus2/.test(q))t=[0,2,7];else if(/sus/.test(q))t=[0,5,7];
+ if(q=='5')t=[0,7];
+ const n=q.replace(/add\d+/,'').match(/(maj)?(7|9|11|13)/);
+ if(/^69/.test(r))t.push(9,14);else if(/^6/.test(r))t.push(9);
+ else if(n){t.push(n[1]?11:/^dim7/.test(q)?9:10);const k=+n[2];if(k>=9)t.push(14);if(k==11)t.push(17);if(k==13)t.push(21)}
+ if(/add9/.test(q))t.push(14);if(/add11/.test(q))t.push(17);
+ const sw=(a,b)=>{t=t.filter(x=>x!=a);t.push(b)};
+ if(/b9/.test(q))sw(14,13);if(/#9/.test(q))sw(14,15);if(/#11/.test(q))sw(17,18);if(/b13/.test(q))sw(21,20);
+ if(/b5/.test(q))t=t.map(x=>x==7?6:x);if(/#5/.test(q))t=t.map(x=>x==7?8:x);
+ return[...new Set(t)]}
+function mk(raw){const m=CH.exec(raw);if(!m)return null;const t=tones(m[2]),h=x=>t.includes(x);
+ return{raw,r:(PC(m[1])+T+120)%12,q:m[2],b:m[3]?(PC(m[3])+T+120)%12:null,t,f:h(3)&&h(6)?(h(9)?'dim':h(10)?'hdim':'dim'):h(3)?'min':h(10)?'dom':'maj'}}
+const LT='CDEFGAB',LP=[0,2,4,5,7,9,11],SP={0:0,1:1,2:1,3:2,4:2,5:3,6:4,7:4,8:5,9:5,10:6,11:6,13:1,14:1,15:2,17:3,18:3,20:5,21:5};
+function spl(n){const m={},rl=LT.indexOf(N[n.r][0]);
+ n.t.forEach(x=>{const pc=(n.r+x)%12;if(m[pc]!=null)return;const li=(rl+(x==9&&n.t.includes(3)&&n.t.includes(6)?6:SP[x]))%7,d=((pc-LP[li]+18)%12)-6;m[pc]=LT[li]+(d>0?'#'.repeat(d):'b'.repeat(-d))});
+ return pc=>m[pc]??N[pc]}
+const nm=c=>N[c.r]+c.q+(c.b!=null&&c.b!=c.r?'/'+N[c.b]:'');
+
+/* ---------- Nhận diện giọng ---------- */
+function detect(cs){let best,bs=-1;const A=[0,2,4,5,7,9,11],I=[0,2,3,5,7,8,10,11],L=cs[cs.length-1],F=cs[0];
+ for(let t=0;t<12;t++)for(const m of[0,1]){const sc=(m?I:A).map(x=>(x+t)%12);let s=0;
+  cs.forEach(c=>c.t.filter(x=>x<8).forEach(x=>{if(sc.includes((c.r+x)%12))s++}));
+  if(L.r==t){s+=3;if((L.f=='min')==!!m)s+=2}if(F.r==t)s+=1.5;
+  if(s>bs){bs=s;best={t,min:m}}}
+ return best}
+
+/* ---------- Quy tắc phối theo phong cách (chỉ số 0..2 = mức độ) ---------- */
+const R={
+ jazz:{maj:['maj7','maj9','6/9'],min:['m7','m9','m11'],dom:['9','13','13'],hdim:['m7b5','m7b5','m7b5'],dim:['dim7','dim7','dim7']},
+ latin:{maj:['maj7','maj9','maj9'],min:['m7','m9','m9'],dom:['7','9','13'],hdim:['m7b5','m7b5','m7b5'],dim:['dim7','dim7','dim7']},
+ rock:{maj:['5','','add9'],min:['5','m','m7'],dom:['5','7','7sus4']},
+ pent:{maj:['add9','6/9','sus2'],min:['m7','m7','m11'],dom:['7sus4','7sus4','9sus4']},
+ asia:{maj:['add9','maj7','maj9'],min:['m7','m9','m9'],dom:['7','7sus4','9sus4']},
+ ball:{maj:['add9','add9','maj7'],min:['m7','m7','m9'],dom:['7','7sus4','7sus4']},
+ blues:{maj:['7','9','13'],min:['m7','m7','m9'],dom:['7','9','13']},
+ gospel:{maj:['maj7','add9','maj9'],min:['m7','m9','m11'],dom:['7sus4','9sus4','13']},
+ funk:{maj:['7','9','9'],min:['m7','m7','m9'],dom:['7','9','13']},
+ reggae:{maj:['','add9','maj7'],min:['m','m7','m7'],dom:['7','7','7sus4']},
+ country:{maj:['','6','add9'],min:['m','m7','m7'],dom:['7','7','9']},
+ flam:{maj:['','','add9'],min:['m','m','madd9'],dom:['7','7b9','7b9']},
+ bolero:{maj:['','6','maj7'],min:['m','m7','m7'],dom:['7','7','9']},
+ celtic:{maj:['5','sus2','add9'],min:['5','m7','m11'],dom:['5','7sus4','sus4']},
+ classic:{maj:['','6','maj7'],min:['m','m','m7'],dom:['7','7','9']},
+ arab:{maj:['','sus2','sus2'],min:['m','m','m11'],dom:['7','7b9','7b9']},
+ samba:{maj:['maj7','maj9','6/9'],min:['m7','m9','m11'],dom:['7','9','13'],hdim:['m7b5','m7b5','m7b5'],dim:['dim7','dim7','dim7']},
+ tango:{maj:['','6','maj7'],min:['m','m7','m9'],dom:['7','7b9','7b9']},
+ citypop:{maj:['maj7','maj9','maj9'],min:['m7','m9','m11'],dom:['9','13','13']},
+ neosoul:{maj:['maj9','maj9','6/9'],min:['m9','m11','m11'],dom:['9','13','7#9']},
+ lofi:{maj:['maj7','maj9','maj9'],min:['m7','m9','m11'],dom:['7sus4','9','13']},
+ impress:{maj:['add9','maj9','maj7#11'],min:['m9','m11','m11'],dom:['9','9#11','13']},
+ gypsy:{maj:['6','6/9','maj7'],min:['m6','m6','m9'],dom:['7','9','7b9']},
+ salsa:{maj:['','maj7','maj9'],min:['m','m7','m9'],dom:['7','9','13']},
+ afro:{maj:['','6','add9'],min:['m7','m9','m9'],dom:['7','9','9']},
+ ska:{maj:['','add9','6'],min:['m','m7','m7'],dom:['7','7','9']},
+ dcb:{maj:['sus2','add9','6/9'],min:['m','m7','m7'],dom:['7sus4','sus4','7sus4']},
+ dct:{maj:['sus2','sus2','add9'],min:['m','m7','m9'],dom:['7sus4','7sus4','9sus4']},
+ dcn:{maj:['','6','add9'],min:['m','m7','m7'],dom:['7','7','9']},
+ vongco:{maj:['','6','maj7'],min:['m','m7','m9'],dom:['7','7','9']},
+ kpop:{maj:['add9','maj7','maj9'],min:['m7','m9','m9'],dom:['7sus4','7sus4','9sus4']},
+ edm:{maj:['','add9','sus2'],min:['m','madd9','m9'],dom:['7sus4','7','9']},
+ bluegrass:{maj:['','','6'],min:['m','m','m7'],dom:['7','7','7']},
+ polka:{maj:['','6','6'],min:['m','m','m6'],dom:['7','7','7']}};
+const SL={ball:1,gospel:1,classic:1,asia:2,kpop:2},JL=['jazz','latin','samba','citypop','neosoul','lofi'],DM=['jazz','latin','samba','tango','citypop','neosoul','gypsy','salsa'];
+const ST={
+ jazz:{n:'Jazz',bpm:116,d:'Hợp âm 7/9/13 giàu màu sắc. V7 → b9 (về thứ) hoặc thay bằng tritone substitution. Bass đi "walking", đệm lệch phách.',w:'Mở rộng 7/9/13 – âm sắc jazz',pf:[0,1.5,2.5],gf:[0,2],bs:[[0,'r'],[1,'3'],[2,'5'],[3,'a']]},
+ latin:{n:'Latin / Bossa',bpm:104,d:'Maj7/m7 mềm mại, hợp âm chủ thứ dùng m6, dominant 9/13. Nhịp bossa nova lệch phách.',w:'Màu Latin: 7/9, m6 ở chủ âm thứ',pf:[0,1.5,2.5,3.5],gf:[0,1.5,2.5,3.5],bs:[[0,'r'],[1.5,'5'],[2,'r'],[3.5,'5']]},
+ rock:{n:'Rock',bpm:124,d:'Mức 1: power chord (chỉ gốc + quãng 5). Mức 2-3: triad mở, add9, sus4. Strum 8 đều, bass bám chủ âm.',w:'Rock: bỏ quãng 3 để nghe dày và mạnh',pf:[0,1,2,3],gf:[0,.5,1,1.5,2,2.5,3,3.5],bs:Array.from({length:8},(_,i)=>[i/2,'r'])},
+ pent:{n:'Ngũ cung',bpm:84,d:'Chỉ dùng các âm của thang ngũ cung (Đô-Rê-Mi-Sol-La): add9, 6/9, sus2/sus4. Không có nửa cung nên nghe trong, thanh, "Á Đông".',w:'Âm thuộc thang ngũ cung, không có nửa cung',arp:1,pf:[0,.5,1,1.5,2,2.5,3,3.5],gf:[0,1,2,3],bs:[[0,'r'],[2,'5']]},
+ asia:{n:'Châu Á',bpm:76,d:'Kiểu V-pop/J-pop/K-pop: add9, maj7/maj9, m9, 7sus4. Mức 3 đảo hợp âm để bass đi liền bậc.',w:'Pop châu Á: add9/maj7/m9, dominant dùng sus4',arp:1,pf:[0,.5,1,1.5,2,2.5,3,3.5],gf:[0,2],bs:[[0,'r'],[2,'r']]},
+ ball:{n:'Ballad',bpm:68,d:'Add9 và maj7 dịu, đảo hợp âm (3 ở bass) để đường bass đi liền bậc, đệm rải arpeggio.',w:'Ballad: add9/maj7, V → sus4 rồi giải quyết',arp:1,pf:[0,1,2,3],gf:[0,1,2,3],bs:[[0,'r'],[2,'5']]},
+ blues:{n:'Blues',bpm:92,d:'Mọi hợp âm chính thành hợp âm bảy (I7–IV7–V7), thêm 9/13 ở mức cao; hợp âm thứ dùng m7. Bass đi "walking".',w:'Blues: hợp âm 7 trên cả I, IV và V',pf:[0,1.5,2.5],gf:[0,1,2,3],bs:[[0,'r'],[1,'3'],[2,'5'],[3,'a']]},
+ gospel:{n:'Gospel',bpm:72,d:'maj7/add9 ấm áp, V thành sus4 rồi mới giải quyết, đảo hợp âm cho bass đi liền bậc, đệm dày.',w:'Gospel: màu 9/13, sus4 trước khi giải quyết',pf:[0,1,2,3],gf:[0,2],bs:[[0,'r'],[2,'5']]},
+ funk:{n:'Funk',bpm:104,d:'Hợp âm 9 và m7/m9 giữ nguyên một màu, đệm cắt ngắn lệch phách 16, bass lặp chắc.',w:'Funk: hợp âm 9, m7, nhịp lệch phách',pf:[0,.75,1.5,2,3.25],gf:[0,.75,1.5,2,3.25],bs:[[0,'r'],[.75,'r'],[1.5,'r'],[2.5,'5'],[3,'r']]},
+ reggae:{n:'Reggae',bpm:76,d:'Hợp âm đơn giản (triad, maj7, m7), guitar "skank" nhấn phách 2 và 4, bass nảy chậm.',w:'Reggae: hợp âm đơn giản, nhấn phách ngược',pf:[1,3],gf:[1,3],bs:[[0,'r'],[2.5,'r'],[3,'5']]},
+ country:{n:'Country',bpm:108,d:'Triad mở, 6, add9, dominant 7. Kiểu "boom-chick": bass gốc – quãng 5 xen kẽ, guitar quạt đều.',w:'Country: triad mở, thêm 6 và add9',pf:[1,3],gf:[1,2,3],bs:[[0,'r'],[2,'5']]},
+ flam:{n:'Flamenco',bpm:112,d:'Giọng Phrygian với cadence Andalusia (Am–G–F–E); V trưởng thêm b9; hợp âm mở, quạt rasgueado.',w:'Flamenco: hợp âm mở, dominant có b9',pf:[0,.5,.75,1.5,2,3],gf:[0,.5,.75,1.5,2,3],bs:[[0,'r'],[2,'r']]},
+ bolero:{n:'Bolero',bpm:78,d:'Nhạc vàng/bolero: triad, thêm 6 và m7, dominant 7. Nhịp bolero đặc trưng, bass gốc – quãng 5.',w:'Bolero: hợp âm trưởng/thứ cổ điển, thêm 6 và m7',pf:[0,1.5,2,3.5],gf:[0,1.5,2.5,3],bs:[[0,'r'],[2,'5']]},
+ celtic:{n:'Celtic',bpm:96,d:'Hợp âm rỗng (chỉ gốc và quãng 5), sus2, add9, chất Dorian dân gian. Đệm rải liên tục, bass kéo dài.',w:'Celtic: quãng 5 rỗng và sus2',arp:1,pf:[0,.5,1,1.5,2,2.5,3,3.5],gf:[0,1,2,3],bs:[[0,'r']]},
+ classic:{n:'Cổ điển',bpm:88,d:'Triad rõ ràng, V7, đảo hợp âm cho bass đi liền bậc, đệm kiểu Alberti (thấp – cao – giữa – cao).',w:'Cổ điển: triad, V7 và đảo hợp âm',arp:1,ix:[0,2,1,2],pf:[0,.5,1,1.5,2,2.5,3,3.5],gf:[0,2],bs:[[0,'r'],[2,'5']]},
+ arab:{n:'Trung Đông',bpm:100,d:'Maqam Hijaz (Phrygian dominant): chủ âm trưởng có b9, sus2 và m11. Nhịp maqsum.',w:'Trung Đông: thang Hijaz, chủ âm có b9',pf:[0,.5,1.5,2,3],gf:[0,.5,1.5,2,3],bs:[[0,'r'],[2,'r']]},
+ samba:{n:'Samba',bpm:100,d:'Maj7/m7 và dominant 9/13 như bossa nhưng nhịp nhanh, nhiều nốt móc kép lệch phách.',w:'Samba: màu bossa, nhịp nhanh lệch phách',pf:[0,.75,1.5,2.25,3],gf:[0,.75,1.5,2.25,3],bs:[[0,'r'],[1,'5'],[2,'r'],[3,'5']]},
+ tango:{n:'Tango',bpm:112,d:'Thường ở giọng thứ: triad, m6/m7, dominant 7b9 trước tonic. Nhịp marcato dứt khoát, bass gốc – quãng 5.',w:'Tango: giọng thứ, V7b9 căng thẳng',pf:[0,1,2,3],gf:[0,1,1.5,2,3],bs:[[0,'r'],[1,'5'],[2,'r'],[3,'5']]},
+ citypop:{n:'City Pop',bpm:108,d:'Nhật Bản thập niên 80: maj7/maj9, m9, dominant 9/13 sáng bóng, bass nhảy lệch phách.',w:'City Pop: maj9, m9, dominant 13 sang trọng',pf:[0,.75,1.5,2.5,3.25],gf:[0,.75,1.5,2.5,3.25],bs:[[0,'r'],[1.5,'r'],[2,'5'],[3,'r']]},
+ neosoul:{n:'Neo Soul',bpm:80,d:'Hợp âm dày maj9, m9, m11; dominant 9/13 hoặc 7#9; đệm lười, đánh chậm hơn nhịp một chút.',w:'Neo Soul: hợp âm 9/11 dày, dominant 7#9',pf:[0,1.75,2.5,3.5],gf:[0,1.75,2.5],bs:[[0,'r'],[1.75,'r'],[3,'5']]},
+ lofi:{n:'Lo-fi',bpm:72,d:'Maj7/maj9, m7/m9 êm dịu, V dùng sus4. Hợp âm chậm, thưa, hợp để nghe thư giãn.',w:'Lo-fi: hợp âm 7/9 dịu, thưa nhịp',pf:[0,2.5],gf:[0,2],bs:[[0,'r'],[2,'r']]},
+ impress:{n:'Ấn tượng',bpm:66,d:'Kiểu Debussy/Ravel: add9, maj9, maj7#11 (Lydian), dominant 9#11. Nhiều màu sắc, ít giải quyết rõ ràng.',w:'Ấn tượng: hợp âm màu sắc, #11 kiểu Lydian',arp:1,ix:[0,1,2,1],pf:[0,.5,1,1.5,2,2.5,3,3.5],gf:[0,2],bs:[[0,'r']]},
+ gypsy:{n:'Gypsy Jazz',bpm:128,d:'Kiểu Django: m6 ở hợp âm thứ, 6 và 6/9 ở hợp âm trưởng, V7b9 về thứ. Nhịp "la pompe": bass phách 1 và 3, đàn đánh phách ngược.',w:'Gypsy Jazz: m6, 6/9, V7b9',pf:[1,3],gf:[1,1.5,3,3.5],bs:[[0,'r'],[2,'5']]},
+ salsa:{n:'Salsa',bpm:96,d:'Triad, maj7, m7, dominant 7/9; V7 về thứ dùng b9. Piano montuno rải lệch phách, bass tumbao đón phách.',w:'Salsa: hợp âm 7/9, montuno rải lệch phách',arp:1,ix:[0,1,2,1],pf:[0,.5,1.5,2,2.5,3.5],gf:[0,1.5,3],bs:[[1.5,'r'],[3,'5']]},
+ afro:{n:'Afrobeat',bpm:108,d:'Tây Phi/highlife: triad sáng với 6 và add9, m7/m9, dominant 9. Nhịp đan xen, lặp vòng hợp âm.',w:'Afrobeat: triad sáng, m9, dominant 9',pf:[0,.5,1,2,2.5,3],gf:[0,.5,1,2,2.5,3],bs:[[0,'r'],[1.5,'r'],[2,'5'],[3.5,'r']]},
+ ska:{n:'Ska',bpm:140,d:'Triad, add9, 6, dominant 7. Guitar và piano "chặt" mọi phách ngược, bass walking nhanh.',w:'Ska: triad sáng, nhấn phách ngược',pf:[.5,1.5,2.5,3.5],gf:[.5,1.5,2.5,3.5],bs:[[0,'r'],[1,'3'],[2,'5'],[3,'3']]},
+ dcb:{n:'Dân ca Bắc Bộ',bpm:80,d:'Quan họ, chèo: giữ màu ngũ cung, dùng sus2/add9 và 6/9 thay cho triad "đóng". Nhịp 2/4 nhẹ nhàng, đệm rải thưa.',w:'Dân ca Bắc Bộ: sus2/add9, giữ màu ngũ cung',arp:1,pf:[0,1,2,3],gf:[0,2],bs:[[0,'r'],[2,'5']]},
+ dct:{n:'Dân ca Trung Bộ',bpm:66,d:'Ca Huế, hò Quảng: trầm buồn, hợp âm thứ m/m7/m9 và sus2. Đệm rải chậm, bass kéo dài.',w:'Dân ca Trung Bộ: hợp âm thứ trầm buồn, sus2',arp:1,pf:[0,1,2,3],gf:[0,2],bs:[[0,'r']]},
+ dcn:{n:'Dân ca Nam Bộ',bpm:104,d:'Lý, hò miền Tây: vui tươi, triad sáng thêm 6/add9, dominant 7. Nhịp 2/4 rộn ràng, quạt đều.',w:'Dân ca Nam Bộ: triad sáng, thêm 6 và add9',pf:[0,1,2,3],gf:[0,1,1.5,2,3,3.5],bs:[[0,'r'],[1,'5'],[2,'r'],[3,'5']]},
+ vongco:{n:'Vọng cổ / Cải lương',bpm:70,d:'Giọng thứ (kiểu "sa mạc"): triad thứ rồi m7/m9, dominant 7 ngọt. Đệm rải chậm như guitar phím lõm, bass gốc – quãng 5.',w:'Vọng cổ: giọng thứ, m7/m9 ngọt, rải chậm',arp:1,pf:[0,1,2,3],gf:[0,1,2,3],bs:[[0,'r'],[2,'5']]},
+ kpop:{n:'K-pop',bpm:120,d:'Pop Hàn: add9, maj7/maj9, m7/m9, V dùng 7sus4; mức 3 đảo hợp âm cho bass đi liền bậc. Nhịp chắc, bass đều.',w:'K-pop: add9/maj7, V dùng sus4, bass đi liền bậc',pf:[0,.75,1.5,2.5,3.25],gf:[0,1.5,2.5,3.5],bs:[[0,'r'],[1,'r'],[2,'r'],[3,'r']]},
+ edm:{n:'EDM',bpm:126,d:'Pad dày: triad, add9, sus2, m9, V7sus4. Đàn pluck rải nốt 16, bass đánh phách ngược xen kick đều bốn phách.',w:'EDM: pad add9/sus2, rải nốt 16',arp:1,ix:[0,1,2,1],pf:Array.from({length:16},(_,i)=>i/4),gf:[0,1,2,3],bs:[[.5,'r'],[1.5,'r'],[2.5,'r'],[3.5,'r']]},
+ bluegrass:{n:'Bluegrass',bpm:132,d:'Triad mở, dominant 7. Guitar flatpick quạt đều, mandolin chặt phách ngược, bass gốc – quãng 5 xen kẽ.',w:'Bluegrass: triad mở và dominant 7',pf:[1,3],gf:[0,1,2,3],bs:[[0,'r'],[1,'5'],[2,'r'],[3,'5']]},
+ polka:{n:'Polka',bpm:116,d:'2/4 rộn ràng "oom-pah": bass đánh phách mạnh, hợp âm đánh phách yếu. Triad sáng, V7.',w:'Polka: triad sáng, nhịp oom-pah',pf:[.5,1.5,2.5,3.5],gf:[.5,1.5,2.5,3.5],bs:[[0,'r'],[1,'5'],[2,'r'],[3,'5']]}};
+
+function rh(c,s,l,nx){
+ let q=(R[s][c.f]||[])[l]??c.q,r=c.r,b=c.b,w=ST[s].w;
+ const alt=c.f=='dom'&&/[b#]\d/.test(c.q),D=(c.r-K.t+12)%12,up=nx?(nx.r-c.r+12)%12:-1,jl=JL.includes(s);
+ if((jl||DM.includes(s))&&alt){q=c.q;w='Giữ nguyên bậc biến âm bạn đã ghi ('+c.q+')'}
+ else if(DM.includes(s)&&c.f=='dom'&&up==5){
+  if(nx.f=='min'||nx.f=='hdim'){q='7b9';w='V7 về hợp âm thứ: b9 tạo căng thẳng đẹp trước khi giải quyết'}
+  else if(s=='jazz'&&l==2){r=(r+6)%12;q='9#11';b=null;w='Tritone substitution: thay V7 bằng bII7 (chung âm 3 và 7, bass đi xuống nửa cung)'}}
+ if(jl&&c.f=='maj'&&D==5&&l>0){q='maj7#11';w='Bậc IV (Lydian): #11 là âm đặc trưng, tránh va vào quãng 3'}
+ if(s=='latin'&&c.f=='min'&&D==0&&l<2){q='m6';w='Chủ âm thứ trong bossa thường dùng m6'}
+ if(s=='flam'&&K.min&&D==7&&c.f!='min'&&l>0){q='7b9';w='V trưởng có b9 (Phrygian): cadence Andalusia'}
+ if(s=='arab'&&D==0&&c.f=='maj'&&l>0){q='7b9';w='Hijaz: chủ âm trưởng có b9 (b2 của thang) tạo màu Trung Đông'}
+ if(l>=(SL[s]??9)&&(c.f=='maj'||c.f=='min')&&nx&&b==null){
+  const th=(c.r+(c.f=='min'?3:4))%12,d=((nx.r-th+18)%12)-6;
+  if(d&&Math.abs(d)<=2){b=th;w='Đảo hợp âm (quãng 3 ở bass) để bass đi liền bậc'}}
+ const n={r,q,b,t:tones(q),w};const h=x=>n.t.includes(x);n.f=c.f;return n}
+
+/* ---------- Voicing piano (voice-leading) ---------- */
+function pv(c,prev){
+ const big=c.t.length>=4,free=c.b==null;
+ let pcs=c.t.filter(x=>!(big&&free&&x%12==7)&&!(c.t.length>=5&&free&&x==0)).map(x=>(c.r+x)%12);pcs=[...new Set(pcs)];
+ let best,bc=1e9;
+ pcs.forEach((_,i)=>{const s=[];pcs.forEach((_,k)=>{const pc=pcs[(i+k)%pcs.length];let m=k?s[k-1]+1:53;while(m%12!=pc)m++;s.push(m)});
+  [s,s.map(x=>x+12)].forEach(v=>{const a=v.reduce((p,x)=>p+x,0)/v.length,d=Math.abs(a-prev)+Math.abs(a-66)*.4+(v[v.length-1]>81?20:0)+v.slice(1).reduce((q,x,i)=>q+(x-v[i]<2?8:0),0);if(d<bc){bc=d;best=v}})});
+ const bp=c.b??c.r,lh=[36+bp];if(big&&free&&c.t.includes(7))lh.push(43+bp);
+ c.lh=lh;c.rh=best;return best.reduce((p,x)=>p+x,0)/best.length}
+
+/* ---------- Thế bấm guitar: tìm kiếm thế dễ bấm nhất ---------- */
+const OP=[40,45,50,55,59,64],gc={};
+function gtr(c){
+ const bp=c.b??c.r,pcs=[...new Set([bp,...c.t.map(x=>(c.r+x)%12)])],five=c.q=='5';
+ const attempt=req=>{let best=null,bs=-1e9;
+  for(let f=0;f<=9;f++)for(let s0=0;s0<=3;s0++)for(let e=s0+2;e<=(five?s0+2:5);e++){
+   const a=[-1,-1,-1,-1,-1,-1];
+   const ev=()=>{const ps=new Set(),fr=[];let n=0;
+    a.forEach((x,s)=>{if(x>=0){n++;ps.add((OP[s]+x)%12);if(x>0)fr.push(x)}});
+    if(!req.every(p=>ps.has(p)))return;
+    const mn=Math.min(...fr),mxf=Math.max(...fr),fg=fr.length?fr.filter(x=>x>mn).length+1:0;if(fg>4)return;
+    const sc=n*1.5+ps.size*1.5-f*.6-(e-s0+1-n)*2-(fr.length?mxf-mn:0)*.4+a.filter(x=>x==0).length*.2;
+    if(sc>bs){bs=sc;best=[...a]}};
+   const d=s=>{if(s>e)return ev();
+    const o=[...(f<=2?[0]:[]),f,f+1,f+2,f+3].filter((x,i,A)=>A.indexOf(x)==i&&pcs.includes((OP[s]+x)%12));
+    for(const x of o){if(s==s0&&(OP[s]+x)%12!=bp)continue;a[s]=x;d(s+1)}
+    if(s>s0&&s<e){a[s]=-1;d(s+1)}};
+   d(s0)}
+  return best};
+ let req=[...new Set(c.t.map(x=>x%12))];
+ if(c.t.length>=4)req=req.filter(x=>x!=7);if(req.length>4)req=req.filter(x=>x!=2);
+ req=req.map(x=>(c.r+x)%12);
+ const k=nm(c);return gc[k]||(gc[k]=attempt(req)||attempt(req.filter(p=>p==bp||p==(c.r+(c.t.find(y=>y>0&&y<6)||7))%12))||attempt([bp]))}
+
+/* ---------- Hình vẽ ---------- */
+function gd(c){const f=c.g,fr=f.filter(x=>x>0),mn=fr.length?Math.min(...fr):1,base=fr.length&&Math.max(...fr)>4?mn:1;
+ let s=`<svg class="gsvg" viewBox="0 0 80 92" width="80" role="img" aria-label="Thế bấm guitar ${esc(nm(c))}"><g stroke="var(--mute)" stroke-width="1">`;
+ for(let i=0;i<6;i++)s+=`<line x1="${14+i*10}" y1="22" x2="${14+i*10}" y2="86"/>`;
+ for(let j=0;j<=4;j++)s+=`<line x1="14" y1="${22+j*16}" x2="64" y2="${22+j*16}" ${j==0&&base==1?'stroke-width="3" stroke="var(--ink)"':''}/>`;
+ s+='</g>';if(base>1)s+=`<text x="0" y="38" font-size="10" fill="var(--mute)">${base}fr</text>`;
+ f.forEach((x,i)=>{const cx=14+i*10;
+  if(x<0)s+=`<text x="${cx}" y="14" font-size="11" text-anchor="middle" fill="var(--mute)">×</text>`;
+  else if(!x)s+=`<circle cx="${cx}" cy="10" r="3.2" fill="none" stroke="var(--ink)"/>`;
+  else s+=`<circle cx="${cx}" cy="${22+(x-base)*16+8}" r="4.5" fill="var(--ink)"/>`});
+ return s+'</svg>'}
+function kb(c){const W=7;let w='',bk='',i=0;
+ const on=m=>c.lh.includes(m)?'var(--acc)':c.rh.includes(m)?'var(--acc2)':null;
+ for(let m=36;m<84;m++){if([1,3,6,8,10].includes(m%12))bk+=`<rect x="${i*W-2.3}" y="0" width="4.6" height="22" rx="1" fill="${on(m)||'var(--blk)'}"/>`;
+  else{w+=`<rect x="${i*W}" y="0" width="${W-.6}" height="36" rx="1" fill="${on(m)||'var(--key)'}" stroke="var(--line)" stroke-width=".4"/>`;i++}}
+ return`<svg class="kb" viewBox="0 0 ${i*W} 36" role="img" aria-label="Thế bấm piano ${esc(nm(c))}">${w}${bk}</svg>`}
+
+/* ---------- Đọc bài hát ---------- */
+function parse(s){
+ const tk=[...s.matchAll(/\S+/g)].map(m=>({i:m.index,s:m[0],c:mk(m[0])}));
+ if(tk.length&&tk.some(x=>x.c)&&tk.every(x=>x.c||/^[|%\-\/]+$/.test(x.s)))return{k:'L',s,tk,c:tk.filter(x=>x.c).map(x=>x.c)};
+ const p=[],c=[];let last=0;
+ s.replace(/\[([^\]]+)\]/g,(m,a,i)=>{const h=mk(a.trim());if(h){p.push(s.slice(last,i),h);c.push(h);last=i+m.length}return m});
+ p.push(s.slice(last));return{k:'I',s,p,c}}
+
+function gen(){
+ stop();const lines=$('#in').value.split('\n').map(parse);cs=lines.flatMap(l=>l.c);
+ const out=$('#out'),cards=$('#cards');out.textContent='';cards.textContent='';
+ if(!cs.length){$('#key').textContent='Giọng: —';out.textContent='Chưa nhận ra hợp âm nào. Hãy nhập hợp âm như C, Am7, F#m, G/B…';return}
+ K=detect(cs);const flat=K.min?[2,7,0,5,10,3,8].includes(K.t):[5,10,3,8,1,6].includes(K.t);N=(flat?NF:NS).slice();if(!flat&&!(K.min?[4,11,6,1,8,3,10]:[7,2,9,4,11,6,1]).includes(K.t)){N[3]='Eb';N[8]='Ab';N[10]='Bb'}
+ const kt='Giọng '+N[K.t]+(K.min?' thứ':' trưởng')+(T?' ('+(T>0?'+':'')+T+' nửa cung)':'');$('#key').textContent=kt+' · '+cs.length+' hợp âm';$('#ph').textContent='Phong cách '+ST[cur].n+' · '+kt+' · Piano: cam = tay trái, xanh = tay phải';
+ cs.forEach((c,i)=>{c.i=i;c.n=rh(c,cur,lv,cs[i+1])});
+ let pr=66;cs.forEach(c=>{pr=pv(c.n,pr);c.n.g=gtr(c.n)});
+ lines.forEach(l=>{const d=document.createElement('div');
+  if(l.k=='L'){let o='';l.tk.forEach(x=>{while(o.length<x.i)o+=' ';if(o&&!o.endsWith(' '))o+=' ';o+=x.c?nm(x.c.n):x.s});d.className='cl';d.textContent=o}
+  else d.textContent=l.p.map(p=>typeof p=='string'?p:'['+nm(p.n)+']').join('')||' ';
+  out.appendChild(d)});
+ const mn=(m,f)=>f(m%12)+(Math.floor(m/12)-1);
+ const cb=c=>{const n=c.n,f=spl(n);return`<span class="cb" data-i="${c.i}" tabindex="0" role="button" title="${esc('Tab '+n.g.map(x=>x<0?'x':x).join(' ')+' · Tay trái '+n.lh.map(m=>mn(m,f)).join(' ')+' · Tay phải '+n.rh.map(m=>mn(m,f)).join(' '))}" aria-label="Nghe ${esc(nm(n))}"><b>${esc(nm(n))}</b>${gd(n)}${kb(n)}</span>`};
+ const sg=(c,t)=>`<span class="sg">${c?cb(c):''}<span class="ly">${esc(t)||' '}</span></span>`;
+ const used=new Set();
+ cards.innerHTML=lines.map((l,j)=>{
+  if(used.has(j))return'';
+  if(l.k=='L'){const nx=lines[j+1],ly=nx&&!nx.c.length?(used.add(j+1),nx.s):'',tk=l.tk.filter(x=>x.c);
+   let h=tk[0].i>0&&ly.slice(0,tk[0].i).trim()?sg(null,ly.slice(0,tk[0].i)):'';
+   tk.forEach((x,k)=>h+=sg(x.c,ly.slice(x.i,k+1<tk.length?tk[k+1].i:undefined)));
+   return`<div class="ln">${h}</div>`}
+  if(l.c.length){let h='',pend=null;
+   l.p.forEach(p=>{if(typeof p=='string'){if(pend||p)h+=sg(pend,p);pend=null}else{if(pend)h+=sg(pend,'');pend=p}});
+   return`<div class="ln">${h}</div>`}
+  return`<div class="ln"><span class="ly">${esc(l.s)||' '}</span></div>`}).join('')}
+
+/* ---------- Âm thanh (Web Audio) ---------- */
+let ac,mx,timers=[];
+const hz=m=>440*2**((m-69)/12);
+function nt(m,t,d,ty,v,lp){const o=ac.createOscillator(),g=ac.createGain(),f=ac.createBiquadFilter();
+ o.type=ty;o.frequency.value=hz(m);f.type='lowpass';f.frequency.value=lp;
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(v,t+.01);g.gain.exponentialRampToValueAtTime(.0008,t+d);
+ o.connect(f);f.connect(g);g.connect(mx);o.start(t);o.stop(t+d+.05)}
+function bar(c,n,t,sp){const S=ST[cur],B=x=>t+x*sp,on=id=>$(id).checked;
+ if(on('#xp')){c.lh.forEach(m=>nt(m,t,sp*3.6,'triangle',.2,900));
+  S.pf.forEach((x,i)=>S.arp?nt(c.rh[(S.ix?S.ix[i%S.ix.length]:i)%c.rh.length],B(x),sp*2,'triangle',.14,3200):c.rh.forEach((m,k)=>nt(m,B(x)+k*.01,sp*1.3,'triangle',.1,3200)))}
+ if(on('#xg')){const g=c.g.map((f,s)=>f<0?null:OP[s]+f).filter(Boolean);
+  S.gf.forEach((x,i)=>S.arp?nt(g[i%g.length],B(x),sp*2.5,'sawtooth',.07,1800):g.forEach((m,k)=>nt(m,B(x)+k*.018,sp*1.2,'sawtooth',.06,2200)))}
+ if(on('#xb')){const bp=c.b??c.r,tp=(c.r+(c.t.find(y=>y>0&&y<6)||7))%12,fp=(c.r+(c.t.includes(6)?6:c.t.includes(8)?8:7))%12,ap=n?((n.b??n.r)+11)%12:bp;
+  S.bs.forEach(([x,k])=>nt(36+({r:bp,'3':tp,'5':fp,a:ap})[k],B(x),sp*.9,'sine',.4,500))}}
+function hl(k){document.querySelectorAll('.cb').forEach(e=>{const on=e.dataset.i==k;e.classList.toggle('on',on);if(on)e.scrollIntoView({block:'nearest',inline:'center'})})}
+function stop(){timers.forEach(clearTimeout);timers=[];if(ac)ac.close();ac=null;hl();const b=$('#pl');b.textContent='▶ Nghe cả bài';b.classList.remove('stop')}
+function play(list,btn,off=0){stop();ac=new AudioContext();const co=ac.createDynamicsCompressor();mx=ac.createGain();mx.gain.value=.7;mx.connect(co);co.connect(ac.destination);ac.resume();
+ const sp=60/$('#bpm').value;let t=ac.currentTime+.1;
+ list.forEach((c,i)=>{bar(c,list[i+1],t,sp);timers.push(setTimeout(()=>hl(i+off),(t-ac.currentTime)*1000));t+=4*sp});
+ timers.push(setTimeout(stop,(t-ac.currentTime)*1000));
+ if(btn){btn.textContent='■ Dừng';btn.classList.add('stop')}}
+
+/* ---------- Giao diện ---------- */
+function pills(id,items,sel,fn){$(id).innerHTML='';items.forEach(([k,l])=>{const b=document.createElement('button');b.type='button';b.textContent=l;b.setAttribute('aria-pressed',k==sel());b.onclick=()=>{fn(k);[...$(id).children].forEach(x=>x.setAttribute('aria-pressed',x==b))};$(id).appendChild(b)})}
+function setStyle(k){cur=k;$('#sd').textContent=ST[k].d;$('#bpm').value=ST[k].bpm;$('#bv').textContent=ST[k].bpm;gen()}
+const GR=[['Việt Nam',['bolero','vongco','dcb','dct','dcn','pent']],
+ ['Latin',['latin','samba','salsa','tango','flam']],
+ ['Jazz / Blues',['jazz','gypsy','blues','gospel','funk','neosoul','impress','classic']],
+ ['Pop / Điện tử',['rock','ball','asia','kpop','citypop','lofi','edm','afro','reggae','ska']],
+ ['Dân gian thế giới',['country','bluegrass','polka','celtic','arab']]];
+GR.forEach(([g,ks])=>{const d=document.createElement('div');d.className='grp';d.innerHTML=`<b>${g}</b>`;const r=document.createElement('div');r.className='row';
+ ks.forEach(k=>{const b=document.createElement('button');b.type='button';b.textContent=ST[k].n;b.setAttribute('aria-pressed',k==cur);
+  b.onclick=()=>{setStyle(k);document.querySelectorAll('#sty button').forEach(x=>x.setAttribute('aria-pressed',x==b))};r.appendChild(b)});
+ d.appendChild(r);$('#sty').appendChild(d)});
+pills('#lvl',[[0,'Nhẹ'],[1,'Vừa'],[2,'Phong phú']],()=>lv,k=>{lv=k;gen()});
+const tt=()=>{$('#tv').textContent=(T>0?'+':'')+T;gen()};
+$('#tu').onclick=()=>{T=Math.min(11,T+1);tt()};$('#td').onclick=()=>{T=Math.max(-11,T-1);tt()};$('#t0').onclick=()=>{T=0;tt()};
+pills('#shw',[['both','Guitar + Piano'],['guitar','Chỉ guitar'],['piano','Chỉ piano'],['none','Chỉ hợp âm']],()=>'both',k=>{$('#cards').dataset.show=k});
+$('#pr').onclick=()=>{try{window.print()}catch{alert('Hãy dùng Ctrl/Cmd + P để in')}};
+$('#bpm').oninput=e=>$('#bv').textContent=e.target.value;
+$('#in').oninput=gen;
+$('#pl').onclick=e=>ac?stop():cs.length&&play(cs.map(c=>c.n),e.target);
+$('#cp').onclick=async e=>{try{await navigator.clipboard.writeText([...$('#out').children].map(d=>d.textContent).join('\n'));e.target.textContent='Đã sao chép ✓'}catch{e.target.textContent='Hãy bôi đen và sao chép thủ công'}setTimeout(()=>e.target.textContent='Sao chép bản phối',1800)};
+const cardGo=e=>{const c=e.target.closest('.cb');if(!c)return;const h=cs[+c.dataset.i];h&&play([h.n],null,h.i)};
+$('#cards').onclick=cardGo;$('#cards').onkeydown=e=>{if(e.key=='Enter'||e.key==' '){e.preventDefault();cardGo(e)}};
+const SAMPLE=`C              Am
+Chiều nay phố vắng em đi
+Dm             G7
+Lòng anh còn nhớ những khi
+C          Am         F        G
+Ta cùng nhau bước dưới mưa
+Em      Am      Dm     G7
+Rồi mình đã xa nhau mất
+C        F       G       C
+Chỉ còn lại một mình anh`;
+$('#smp').onclick=()=>{$('#in').value=SAMPLE;gen()};
+$('#in').value=SAMPLE;setStyle('jazz');
+</script>
+</body>
+</html>
